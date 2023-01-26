@@ -1,0 +1,7 @@
+build*/*
+_build*
+.vscode/
+/cmake-build-debug/
+.idea/
+*.pyc
+*.npz
