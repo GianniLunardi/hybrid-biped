@@ -1,9 +1,9 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
 
 ### Change the name of the project here ###
-SET(PROJECT_NAME package-name)
+SET(PROJECT_NAME hybrid-biped)
 SET(PROJECT_ORG glunardi)
-SET(PROJECT_DESCRIPTION "Quadruped simulator")
+SET(PROJECT_DESCRIPTION "Hybrid linear inverted pendulum model for robotic's biped applications")
 SET(PROJECT_URL https://github.com/${PROJECT_ORG}/${PROJECT_NAME})
 
 INCLUDE(cmake/base.cmake)

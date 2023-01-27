@@ -1,2 +1,2 @@
-# python-package-template
-Template repo for Python package
+# Hybrid Biped
+Hybrid linear inverted pendulum model for robotic's biped applications

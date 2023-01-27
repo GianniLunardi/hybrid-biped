@@ -1,6 +1,6 @@
 SET(PACKAGE_PYTHON_FILES
   __init__.py
-  # Insert scripts
+  HybridLIPM.py
 )
 
 STRING(REGEX REPLACE "-" "_" PY_NAME ${PROJECT_NAME})
