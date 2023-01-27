@@ -5,3 +5,5 @@ _build*
 .idea/
 *.pyc
 *.npz
+matlab/pathdef.m
+*.mat
