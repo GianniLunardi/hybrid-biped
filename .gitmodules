@@ -1,3 +1,6 @@
 [submodule "cmake"]
 	path = cmake
 	url = https://github.com/jrl-umi3218/jrl-cmakemodules.git
+[submodule "lmpc_walking"]
+	path = lmpc_walking
+	url = https://github.com/GianniLunardi/lmpc_walking.git
