@@ -17,4 +17,23 @@ PROJECT(${PROJECT_NAME} ${PROJECT_ARGS})
 
 FINDPYTHON()
 
+# Install the LMPC walking package
+SET(SECOND_ORDER_FILES
+  __init__.py
+  constraints.py
+  cost_function.py
+  LIPM_to_whole_body.py
+  motion_model.py
+  plot_utils.py
+  reference_trajectories.py
+)
+
+SET(LMPC_NAME "lmpc_walking")
+PYTHON_INSTALL_ON_SITE(${LMPC_NAME} __init__.py)
+
+FOREACH(python ${SECOND_ORDER_FILES})
+  PYTHON_INSTALL_ON_SITE(${LMPC_NAME}/second_order/ ${python})
+ENDFOREACH(python ${SECOND_ORDER_FILES})
+
+# Install the hybrid_biped pkg
 ADD_SUBDIRECTORY(python)
