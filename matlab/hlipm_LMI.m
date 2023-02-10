@@ -82,7 +82,7 @@ JSPAN = [0 100];
 rule = 1;
 opts = odeset('RelTol',1e-6,'MaxStep',1e-3);
 
-x0 = [3e-3; 0.12; (0.5)*T_ref];
+x0 = [-1e-1; 0.12; (0.3)*T_ref];
 
 [t j x] = HyEQsolver( @(x,t) f(x,A,B,K,r_bar,v_bar,L,u_bar), ...
                       @(x,t) g(x,r_bar,T_ref), ...
@@ -137,7 +137,7 @@ plot(e(:,1), e(:,2), 'Color', plot_colors{2});
 title('Region of attraction');
 
 %% Save K
-save(strcat(getenv('HOME'), '/devel/src/hybrid-biped/examples/data.mat'), ...
+save(strcat(getenv('HOME'), '/devel/src/hybrid-biped/data/data.mat'), ...
     "K", "x0");
 
 %% External functions
