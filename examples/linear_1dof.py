@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from hybrid_biped import HybridLipm
+from hybrid_biped import HybridLipm, BipedParams
 import biped_conf as conf
 
 
-hs_lipm = HybridLipm(conf.dt, conf.tau0, conf.omega, conf.r_bar,
-                     conf.v_bar, conf.T, conf.L, conf.K)
+params = BipedParams('../data')
+hs_lipm = HybridLipm(conf.dt, conf.tau0, params)
 
 n_steps = int(conf.T/conf.dt) * conf.N_footsteps
 
@@ -26,9 +26,9 @@ for i in range(n_steps):
 t = np.arange(0, n_steps) * conf.dt
 fig, ax = plt.subplots(2, 1)
 ax[0].plot(t, x[:-1,0], color='blue', label='x')
-ax[0].plot(t, x_r[:,0], color='red', label='x_r')
+ax[0].plot(t, x_r[:,0], color='red', label='$x_r$')
 ax[0].legend()
 ax[1].plot(t, x[:-1,1], color='blue', label='x')
-ax[1].plot(t, x_r[:,1], color='red', label='x_r')
+ax[1].plot(t, x_r[:,1], color='red', label='$x_r$')
 ax[1].legend()
 plt.show()
