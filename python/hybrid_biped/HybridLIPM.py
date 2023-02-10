@@ -1,20 +1,25 @@
 import numpy as np
+from hybrid_biped.Params import BipedParams
 
 class HybridLipm:
 
-    def __init__(self, dt, tau0, omega, r_bar, v_bar, T, L, K):
+    def __init__(self, dt, tau0, params = None):
+        if params is not None:
+            self.params = params
+        else:
+            self.params = BipedParams('.')
         self.dt = dt
         self.tau = tau0
-        self.omega = omega
-        self.r_bar = r_bar
-        self.v_bar = v_bar
-        self.T = T
-        self.L = L
-        self.K = K
-        self.x0 = np.array([-r_bar, v_bar])
-        self.A_d = np.array([[np.cosh(omega * dt), (1 / omega) * np.sinh(omega * dt)],
-                             [omega * np.sinh(omega * dt), np.cosh(omega * dt)]])
-        self.B_d = np.array([1 - np.cosh(omega * dt), - omega * np.sinh(omega * dt)])
+        self.omega = params.omega
+        self.r_bar = params.r_bar
+        self.v_bar = params.v_bar
+        self.T = params.T
+        self.K = params.K
+        self.x_sat = params.x_sat
+        self.x_ref_0 = np.array([-params.r_bar, params.v_bar])
+        self.A_d = np.array([[np.cosh(self.omega * dt), (1 / self.omega) * np.sinh(self.omega * dt)],
+                             [self.omega * np.sinh(self.omega * dt), np.cosh(self.omega * dt)]])
+        self.B_d = np.array([1 - np.cosh(self.omega * dt), - self.omega * np.sinh(self.omega * dt)])
 
     def flow(self, x, u):
         self.tau += self.dt
@@ -27,10 +32,10 @@ class HybridLipm:
     def referenceWithTimer(self):
         expA = np.array([[np.cosh(self.omega * self.tau), (1 / self.omega) * np.sinh(self.omega * self.tau)],
                          [self.omega * np.sinh(self.omega * self.tau), np.cosh(self.omega * self.tau)]])
-        return expA.dot(self.x0)
+        return expA.dot(self.x_ref_0)
 
     def linearSat(self, u):
-        return np.min([np.max([u, -self.L]), self.L])
+        return np.min([np.max([u, -self.x_sat]), self.x_sat])
 
     def saturatedFb(self, eps):
         return self.linearSat(self.K.dot(eps))
