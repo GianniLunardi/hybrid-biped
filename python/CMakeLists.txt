@@ -1,6 +1,9 @@
 SET(PACKAGE_PYTHON_FILES
-  __init__.py
+  Params.py
   HybridLIPM.py
+  LinearMPC.py
+  LIPM_to_WBD.py
+  TSID.py
 )
 
 STRING(REGEX REPLACE "-" "_" PY_NAME ${PROJECT_NAME})
