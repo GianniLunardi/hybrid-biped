@@ -36,10 +36,12 @@ feet_traj['RF'] = np.zeros((n_wb, 3, 3))
 j = 1
 stance = 'RF'
 swing = 'LF'
+contact_phase = []
 x0 = X_wb[0,:]
 for i in range(n_wb):
     feet_traj[swing][i,:,:] = wbc.footTrajectoryFromHS(X_wb[i,:], x0, U_x_wb[i], foot_steps[j-1,:], foot_steps[j+1,:])
     feet_traj[stance][i,:,:] = wbc.footTrajectoryFromHS(X_wb[i,:], x0, U_x_wb[i], foot_steps[j,:], foot_steps[j,:], 0)
+    contact_phase.append(stance)
     if np.linalg.norm(X_wb[i+1,0] - X_wb[i,0]) > params.r_bar:
         stance, swing = swing, stance
         j +=1
@@ -86,30 +88,12 @@ ax[2].plot(t_wb, feet_traj['RF'][:,2,0], color='darkblue', label='$z_{RF}$')
 ax[2].grid(), ax[2].legend(), ax[2].set_ylim([-0.01, 0.06]), ax[2].set_ylabel('z (m)')
 ax[2].set_xlabel('Time (s)')
 
-fig4 = plt.figure()
-plt.plot(feet_traj['LF'][:,0,0], feet_traj['LF'][:,2,0], color='darkorange', label='LF')
-plt.plot(feet_traj['RF'][:,0,0], feet_traj['RF'][:,2,0], color='darkblue', label='RF')
-plt.grid(), plt.legend()
-plt.xlabel('x (m)')
-plt.ylabel('z (m)')
-
-# plt.figure()
-# plt.plot(t_wb, wbc.t_arr)
-
-#### TRY OF POLY ####
-
-# t_try = np.linspace(0, params.T, n_wb)
-# xy_try = np.zeros((n_wb, 2, 3))
-# for i in range(n_wb):
-#     xy_try[i,:,:] = wbc.fifthOrderPolynomial(t_try[i], np.array([2, 0]), np.array([3, 2]))
-# z_try = wbc.sixthOrderPolynomial(t_try, 0.05)
-# print(n_wb)
-#
-# plt.figure()
-# plt.plot(t_try, z_try[:,0])
-#
-# plt.figure()
-# plt.plot(t_wb, xy_try[:,0,0])
-# plt.plot(t_wb, xy_try[:,1,0])
 
 plt.show()
+
+# Save the results
+np.savez('../data/walking_ref.npz', ddcom_x = X_ddot_wb, ddcom_y = Y_ddot_wb,
+         x_RF=feet_traj['RF'][:,:,0], dx_RF=feet_traj['RF'][:,:,1], ddx_RF=feet_traj['RF'][:,:,2],
+         x_LF=feet_traj['LF'][:,:,0], dx_LF=feet_traj['LF'][:,:,1], ddx_LF=feet_traj['LF'][:,:,2],
+         contact_phase=contact_phase
+         )
