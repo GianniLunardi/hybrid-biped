@@ -19,6 +19,17 @@ n_mpc = len(Y_mpc) - 1
 # CoM x acceleration
 X_ddot_wb = wbc.computeCoMAcceleration(X_wb[:-1,0], U_x_wb)
 
+# Compute predicted period for steps
+T_pred = []
+count = 0
+for i in range(n_wb):
+    if np.linalg.norm(X_wb[i + 1, 0] - X_wb[i, 0]) < params.r_bar:
+        count += 1
+    else:
+        T_pred.append(count * params.dt)
+        count = 0
+T_pred.append(T_pred[-1])
+
 # CoM y acceleration
 Y_wb = np.zeros((n_wb+1, 2))
 Y_wb[0,:] = Y_mpc[0,:]
@@ -37,13 +48,18 @@ j = 1
 stance = 'RF'
 swing = 'LF'
 x0 = X_wb[0,:]
+count = 0
 for i in range(n_wb):
-    feet_traj[swing][i,:,:] = wbc.footTrajectoryFromHS(X_wb[i,:], x0, U_x_wb[i], foot_steps[j-1,:], foot_steps[j+1,:])
-    feet_traj[stance][i,:,:] = wbc.footTrajectoryFromHS(X_wb[i,:], x0, U_x_wb[i], foot_steps[j,:], foot_steps[j,:], 0)
+    wbc.set_time_offline(count * params.dt, T_pred[0])
+    count += 1
+    feet_traj[swing][i,:,:] = wbc.footTrajectoryFromHS(foot_steps[j-1,:], foot_steps[j+1,:])
+    feet_traj[stance][i,:,:] = wbc.footTrajectoryFromHS(foot_steps[j,:], foot_steps[j,:], 0)
     if np.linalg.norm(X_wb[i+1,0] - X_wb[i,0]) > params.r_bar:
         stance, swing = swing, stance
         j +=1
         x0 = X_wb[i+1,:]
+        count = 1
+        T_pred.pop(0)
 
 #### PLOTS ####
 t_mpc = np.arange(0, n_mpc) * params.dt_mpc
