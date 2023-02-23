@@ -1,8 +1,8 @@
 import numpy as np
 from hybrid_biped.Params import BipedParams
 
-class HybridLipm:
 
+class HybridLipm:
     def __init__(self, dt, tau0, params = None):
         if params is not None:
             self.params = params
@@ -10,23 +10,26 @@ class HybridLipm:
             self.params = BipedParams('.')
         self.dt = dt
         self.tau = tau0
-        self.omega = params.omega
-        self.r_bar = params.r_bar
-        self.v_bar = params.v_bar
-        self.T = params.T
-        self.K = params.K
-        self.x_sat = params.x_sat
-        self.x_ref_0 = np.array([-params.r_bar, params.v_bar])
+        self.t_hs = 0           # time axis for each foot step (Hybrid System)
+        self.omega = self.params.omega
+        self.r_bar = self.params.r_bar
+        self.v_bar = self.params.v_bar
+        self.T = self.params.T
+        self.K = self.params.K
+        self.x_sat = self.params.x_sat
+        self.x_ref_0 = np.array([-self.params.r_bar, self.params.v_bar])
         self.A_d = np.array([[np.cosh(self.omega * dt), (1 / self.omega) * np.sinh(self.omega * dt)],
                              [self.omega * np.sinh(self.omega * dt), np.cosh(self.omega * dt)]])
         self.B_d = np.array([1 - np.cosh(self.omega * dt), - self.omega * np.sinh(self.omega * dt)])
 
     def flow(self, x, u):
         self.tau += self.dt
+        self.t_hs += self.dt
         return self.A_d.dot(x) + self.B_d * u
 
     def jump(self, x):
         self.tau = self.tau - self.T
+        self.t_hs = 0
         return x - np.array([2 * self.r_bar, 0])
 
     def referenceWithTimer(self):
@@ -39,3 +42,29 @@ class HybridLipm:
 
     def saturatedFb(self, eps):
         return self.linearSat(self.K.dot(eps))
+
+    def computeRealControl(self, x):
+        # Compute the control by updating the state from a real/simulated system
+        jump_bool = False
+        if x[0] >= self.r_bar:
+            x = self.jump(x)
+            jump_bool = True
+        x_r = self.referenceWithTimer()
+        u = self.saturatedFb(x - x_r)
+        self.x_next = self.flow(x, u)
+        return u, jump_bool
+
+
+def rolloutLipmDynamics(x0, tau0, dt, params):
+    """ Roll-out of the Hybrid LIPM dynamics """
+    i = 0
+    hs_lipm = HybridLipm(dt, tau0)
+    x_hb = x0
+
+    while x_hb[0] < params.r_bar:
+        x_hb_ref = hs_lipm.referenceWithTimer()
+        eps = x_hb - x_hb_ref
+        u = hs_lipm.saturatedFb(eps)
+        x_hb = hs_lipm.flow(x_hb, u)
+        i += 1
+    return i
