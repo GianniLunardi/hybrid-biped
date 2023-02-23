@@ -39,3 +39,18 @@ class HybridLipm:
 
     def saturatedFb(self, eps):
         return self.linearSat(self.K.dot(eps))
+
+
+def rolloutLipmDynamics(x0, tau0, dt, params):
+    """ Roll-out of the Hybrid LIPM dynamics """
+    i = 0
+    hs_lipm = HybridLipm(dt, tau0)
+    x_hb = x0
+
+    while x_hb[0] < params.r_bar:
+        x_hb_ref = hs_lipm.referenceWithTimer()
+        eps = x_hb - x_hb_ref
+        u = hs_lipm.saturatedFb(eps)
+        x_hb = hs_lipm.flow(x_hb, u)
+        i += 1
+    return i
