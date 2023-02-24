@@ -15,101 +15,101 @@ class TsidBiped:
         - Regularization task for contact forces
     """
 
-    def __init__(self, conf, viewer=pin.visualize.MeshcatVisualizer):
-        self.conf = conf
-        self.robot = tsid.RobotWrapper(conf.urdf, [conf.path], pin.JointModelFreeFlyer(), False)
+    def __init__(self, params, viewer=pin.visualize.GepettoVisualizer):
+        self.params = params
+        self.robot = tsid.RobotWrapper(params.urdf, [params.path], pin.JointModelFreeFlyer(), False)
         robot = self.robot
         self.model = robot.model()
-        pin.loadReferenceConfigurations(self.model, conf.srdf, False)
+        pin.loadReferenceConfigurations(self.model, params.srdf, False)
         self.q0 = q = self.model.referenceConfigurations["half_sitting"]
         v = np.zeros(robot.nv)
 
-        assert self.model.existFrame(conf.rf_frame_name)
-        assert self.model.existFrame(conf.lf_frame_name)
+        assert self.model.existFrame(params.rf_frame_name)
+        assert self.model.existFrame(params.lf_frame_name)
 
         formulation = tsid.InverseDynamicsFormulationAccForce("tsid", robot, False)
         formulation.computeProblemData(0.0, q, v)
         data = formulation.data()
-        contact_Point = np.ones((3, 4)) * (-conf.lz)
-        contact_Point[0, :] = [-conf.lxn, -conf.lxn, conf.lxp, conf.lxp]
-        contact_Point[1, :] = [-conf.lyn, conf.lyp, -conf.lyn, conf.lyp]
+        contact_Point = np.ones((3, 4)) * (-params.lz)
+        contact_Point[0, :] = [-params.lxn, -params.lxn, params.lxp, params.lxp]
+        contact_Point[1, :] = [-params.lyn, params.lyp, -params.lyn, params.lyp]
 
-        contactRF = tsid.Contact6d("contact_rfoot", robot, conf.rf_frame_name, contact_Point,
-                                   conf.contactNormal, conf.mu, conf.fMin, conf.fMax)
-        contactRF.setKp(conf.kp_contact * np.ones(6))
-        contactRF.setKd(2.0 * np.sqrt(conf.kp_contact) * np.ones(6))
-        self.RF = robot.model().getFrameId(conf.rf_frame_name)
+        contactRF = tsid.Contact6d("contact_rfoot", robot, params.rf_frame_name, contact_Point,
+                                   params.contactNormal, params.mu, params.fMin, params.fMax)
+        contactRF.setKp(params.kp_contact * np.ones(6))
+        contactRF.setKd(2.0 * np.sqrt(params.kp_contact) * np.ones(6))
+        self.RF = robot.model().getFrameId(params.rf_frame_name)
         H_rf_ref = robot.framePosition(data, self.RF)
 
         # modify initial robot configuration so that foot is on the ground (z=0)
-        q[2] -= H_rf_ref.translation[2] - conf.lz
+        q[2] -= H_rf_ref.translation[2] - params.lz
         formulation.computeProblemData(0.0, q, v)
         data = formulation.data()
         H_rf_ref = robot.framePosition(data, self.RF)
         contactRF.setReference(H_rf_ref)
-        if conf.w_contact >= 0.0:
-            formulation.addRigidContact(contactRF, conf.w_forceRef, conf.w_contact, 1)
+        if params.w_contact >= 0.0:
+            formulation.addRigidContact(contactRF, params.w_forceRef, params.w_contact, 1)
         else:
-            formulation.addRigidContact(contactRF, conf.w_forceRef)
+            formulation.addRigidContact(contactRF, params.w_forceRef)
 
-        contactLF = tsid.Contact6d("contact_lfoot", robot, conf.lf_frame_name, contact_Point,
-                                   conf.contactNormal, conf.mu, conf.fMin, conf.fMax)
-        contactLF.setKp(conf.kp_contact * np.ones(6))
-        contactLF.setKd(2.0 * np.sqrt(conf.kp_contact) * np.ones(6))
-        self.LF = robot.model().getFrameId(conf.lf_frame_name)
+        contactLF = tsid.Contact6d("contact_lfoot", robot, params.lf_frame_name, contact_Point,
+                                   params.contactNormal, params.mu, params.fMin, params.fMax)
+        contactLF.setKp(params.kp_contact * np.ones(6))
+        contactLF.setKd(2.0 * np.sqrt(params.kp_contact) * np.ones(6))
+        self.LF = robot.model().getFrameId(params.lf_frame_name)
         H_lf_ref = robot.framePosition(data, self.LF)
         contactLF.setReference(H_lf_ref)
-        if conf.w_contact >= 0.0:
-            formulation.addRigidContact(contactLF, conf.w_forceRef, conf.w_contact, 1)
+        if params.w_contact >= 0.0:
+            formulation.addRigidContact(contactLF, params.w_forceRef, params.w_contact, 1)
         else:
-            formulation.addRigidContact(contactLF, conf.w_forceRef)
+            formulation.addRigidContact(contactLF, params.w_forceRef)
 
         comTask = tsid.TaskComEquality("task-com", robot)
-        comTask.setKp(conf.kp_com * np.ones(3))
-        comTask.setKd(2.0 * np.sqrt(conf.kp_com) * np.ones(3))
-        formulation.addMotionTask(comTask, conf.w_com, 1, 0.0)
+        comTask.setKp(params.kp_com * np.ones(3))
+        comTask.setKd(2.0 * np.sqrt(params.kp_com) * np.ones(3))
+        formulation.addMotionTask(comTask, params.w_com, 1, 0.0)
 
         copTask = tsid.TaskCopEquality("task-cop", robot)
-        formulation.addForceTask(copTask, conf.w_cop, 1, 0.0)
+        formulation.addForceTask(copTask, params.w_cop, 1, 0.0)
 
         amTask = tsid.TaskAMEquality("task-am", robot)
-        amTask.setKp(conf.kp_am * np.array([1., 1., 0.]))
-        amTask.setKd(2.0 * np.sqrt(conf.kp_am * np.array([1., 1., 0.])))
-        formulation.addMotionTask(amTask, conf.w_am, 1, 0.)
+        amTask.setKp(params.kp_am * np.array([1., 1., 0.]))
+        amTask.setKd(2.0 * np.sqrt(params.kp_am * np.array([1., 1., 0.])))
+        formulation.addMotionTask(amTask, params.w_am, 1, 0.)
         sampleAM = tsid.TrajectorySample(3)
         amTask.setReference(sampleAM)
 
         postureTask = tsid.TaskJointPosture("task-posture", robot)
-        postureTask.setKp(conf.kp_posture * conf.gain_vector)
-        postureTask.setKd(2.0 * np.sqrt(conf.kp_posture * conf.gain_vector))
-        postureTask.setMask(conf.masks_posture)
-        formulation.addMotionTask(postureTask, conf.w_posture, 1, 0.0)
+        postureTask.setKp(params.kp_posture * params.gain_vector)
+        postureTask.setKd(2.0 * np.sqrt(params.kp_posture * params.gain_vector))
+        postureTask.setMask(params.masks_posture)
+        formulation.addMotionTask(postureTask, params.w_posture, 1, 0.0)
 
-        self.leftFootTask = tsid.TaskSE3Equality("task-left-foot", self.robot, self.conf.lf_frame_name)
-        self.leftFootTask.setKp(self.conf.kp_foot * np.ones(6))
-        self.leftFootTask.setKd(2.0 * np.sqrt(self.conf.kp_foot) * np.ones(6))
+        self.leftFootTask = tsid.TaskSE3Equality("task-left-foot", self.robot, self.params.lf_frame_name)
+        self.leftFootTask.setKp(self.params.kp_foot * np.ones(6))
+        self.leftFootTask.setKd(2.0 * np.sqrt(self.params.kp_foot) * np.ones(6))
         self.trajLF = tsid.TrajectorySE3Constant("traj-left-foot", H_lf_ref)
-        formulation.addMotionTask(self.leftFootTask, self.conf.w_foot, 1, 0.0)
+        formulation.addMotionTask(self.leftFootTask, self.params.w_foot, 1, 0.0)
 
-        self.rightFootTask = tsid.TaskSE3Equality("task-right-foot", self.robot, self.conf.rf_frame_name)
-        self.rightFootTask.setKp(self.conf.kp_foot * np.ones(6))
-        self.rightFootTask.setKd(2.0 * np.sqrt(self.conf.kp_foot) * np.ones(6))
+        self.rightFootTask = tsid.TaskSE3Equality("task-right-foot", self.robot, self.params.rf_frame_name)
+        self.rightFootTask.setKp(self.params.kp_foot * np.ones(6))
+        self.rightFootTask.setKd(2.0 * np.sqrt(self.params.kp_foot) * np.ones(6))
         self.trajRF = tsid.TrajectorySE3Constant("traj-right-foot", H_rf_ref)
-        formulation.addMotionTask(self.rightFootTask, self.conf.w_foot, 1, 0.0)
+        formulation.addMotionTask(self.rightFootTask, self.params.w_foot, 1, 0.0)
 
-        self.tau_max = conf.tau_max_scaling * robot.model().effortLimit[-robot.na:]
+        self.tau_max = params.tau_max_scaling * robot.model().effortLimit[-robot.na:]
         self.tau_min = -self.tau_max
         actuationBoundsTask = tsid.TaskActuationBounds("task-actuation-bounds", robot)
         actuationBoundsTask.setBounds(self.tau_min, self.tau_max)
-        if conf.w_torque_bounds > 0.0:
-            formulation.addActuationTask(actuationBoundsTask, conf.w_torque_bounds, 0, 0.0)
+        if params.w_torque_bounds > 0.0:
+            formulation.addActuationTask(actuationBoundsTask, params.w_torque_bounds, 0, 0.0)
 
-        jointBoundsTask = tsid.TaskJointBounds("task-joint-bounds", robot, conf.dt)
-        self.v_max = conf.v_max_scaling * robot.model().velocityLimit[-robot.na:]
+        jointBoundsTask = tsid.TaskJointBounds("task-joint-bounds", robot, params.dt)
+        self.v_max = params.v_max_scaling * robot.model().velocityLimit[-robot.na:]
         self.v_min = -self.v_max
         jointBoundsTask.setVelocityBounds(self.v_min, self.v_max)
-        if conf.w_joint_bounds > 0.0:
-            formulation.addMotionTask(jointBoundsTask, conf.w_joint_bounds, 0, 0.0)
+        if params.w_joint_bounds > 0.0:
+            formulation.addMotionTask(jointBoundsTask, params.w_joint_bounds, 0, 0.0)
 
         com_ref = robot.com(data)
         self.trajCom = tsid.TrajectoryEuclidianConstant("traj_com", com_ref)
@@ -148,7 +148,7 @@ class TsidBiped:
         self.contact_RF_active = True
 
         if viewer:
-            self.robot_display = pin.RobotWrapper.BuildFromURDF(conf.urdf, [conf.path], pin.JointModelFreeFlyer())
+            self.robot_display = pin.RobotWrapper.BuildFromURDF(params.urdf, [params.path], pin.JointModelFreeFlyer())
             if viewer == pin.visualize.GepettoVisualizer:
                 import gepetto.corbaserver
                 launched = subprocess.getstatusoutput("ps aux |grep 'gepetto-gui'|grep -v 'grep'|wc -l")
@@ -163,7 +163,7 @@ class TsidBiped:
                 self.viz.display(q)
 
                 self.gui = self.viz.viewer.gui
-                # self.gui.setCameraTransform(0, conf.CAMERA_TRANSFORM)
+                # self.gui.setCameraTransform(0, params.CAMERA_TRANSFORM)
                 self.gui.addFloor('world/floor')
                 self.gui.setLightingMode('world/floor', 'OFF')
             elif viewer == pin.visualize.MeshcatVisualizer:
@@ -245,19 +245,19 @@ class TsidBiped:
     def add_contact_RF(self, transition_time=0.0):
         H_rf_ref = self.robot.framePosition(self.formulation.data(), self.RF)
         self.contactRF.setReference(H_rf_ref)
-        if self.conf.w_contact >= 0.0:
-            self.formulation.addRigidContact(self.contactRF, self.conf.w_forceRef, self.conf.w_contact, 1)
+        if self.params.w_contact >= 0.0:
+            self.formulation.addRigidContact(self.contactRF, self.params.w_forceRef, self.params.w_contact, 1)
         else:
-            self.formulation.addRigidContact(self.contactRF, self.conf.w_forceRef)
+            self.formulation.addRigidContact(self.contactRF, self.params.w_forceRef)
 
         self.contact_RF_active = True
 
     def add_contact_LF(self, transition_time=0.0):
         H_lf_ref = self.robot.framePosition(self.formulation.data(), self.LF)
         self.contactLF.setReference(H_lf_ref)
-        if self.conf.w_contact >= 0.0:
-            self.formulation.addRigidContact(self.contactLF, self.conf.w_forceRef, self.conf.w_contact, 1)
+        if self.params.w_contact >= 0.0:
+            self.formulation.addRigidContact(self.contactLF, self.params.w_forceRef, self.params.w_contact, 1)
         else:
-            self.formulation.addRigidContact(self.contactLF, self.conf.w_forceRef)
+            self.formulation.addRigidContact(self.contactLF, self.params.w_forceRef)
 
         self.contact_LF_active = True
