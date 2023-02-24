@@ -10,7 +10,7 @@ U_x_wb = data['u_x']
 Y_mpc = data['y_com']
 U_y_mpc = data['u_y']
 U_ref = data['u_ref']
-foot_steps = np.vstack([[-0.3, 0.05] ,data['foot_steps'][:-1]])
+foot_steps = np.vstack([[-0.3, 0.08] ,data['foot_steps'][:-1]])
 
 wbc = LipmToWbc(params)
 n_wb = len(X_wb) - 1
@@ -35,8 +35,8 @@ Y_wb = np.zeros((n_wb+1, 2))
 Y_wb[0,:] = Y_mpc[0,:]
 Y_ddot_wb = np.zeros(n_wb)
 for i in range(n_mpc):
-    for j in range(params.ratio_mpc):
-        ii = i * params.ratio_mpc + j
+    for j in range(params.ratio):
+        ii = i * params.ratio + j
         Y_wb[ii+1,:] = wbc.integrateCoMLateralState(Y_mpc[i,:], U_y_mpc[i], j)
         Y_ddot_wb[ii] = wbc.computeCoMAcceleration(Y_wb[ii,0], U_y_mpc[i])
 
