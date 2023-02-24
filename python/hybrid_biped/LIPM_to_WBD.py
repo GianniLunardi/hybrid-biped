@@ -53,7 +53,7 @@ class LipmToWbc:
 
     def set_time(self, t_hs, x, tau):
         self.t = t_hs
-        self.t_left = rolloutLipmDynamics(x, tau, self.dt, self.params)
+        self.t_left = self.dt * rolloutLipmDynamics(x, tau, self.dt, self.params)
 
     def set_time_offline(self, t_hs, t_pred):
         self.t = t_hs
