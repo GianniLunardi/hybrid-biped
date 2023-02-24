@@ -4,7 +4,7 @@ import scipy.io
 class BipedParams:
 
     def __init__(self, mat_path, filename = None):
-        self.h_com = 0.58
+        self.h_com = 0.66  #0.58
         self.g = 9.81
         self.omega = np.sqrt(self.g / self.h_com)
 
@@ -31,7 +31,7 @@ class BipedParams:
         self.K = data['K']
 
         # ICs
-        self.foot_step_0 = np.array([0., -0.05])
+        self.foot_step_0 = np.array([0., -0.08])
         self.tau_hat_0 = data['x0'][-1].item()
         self.x_hat_0 = data['x0'][:-1].T[0]
         self.y_hat_0 = np.array([-0.04, 0.0])
@@ -42,8 +42,8 @@ class BipedParams:
 
         # Weights
         self.alpha = 1e2
-        self.beta = 1e2
-        self.gamma = 1e2
+        self.beta = 0
+        self.gamma = 1e-1
 
         # Configuration for TSID
         self.path = '/opt/openrobots/share/example-robot-data/robots/romeo_description'
@@ -77,7 +77,7 @@ class BipedParams:
 
         self.kp_contact = 10.0  # proportional gain of contact constraint
         self.kp_foot = 10.0  # proportional gain of contact constraint
-        self.kp_com = 0.0  # proportional gain of center of mass task ########################
+        self.kp_com = 3.0  # proportional gain of center of mass task
         self.kp_am = 10.0  # proportional gain of angular momentum task
         self.kp_posture = 1.0  # proportional gain of joint posture task
         self.gain_vector = self.kp_posture * np.ones(self.nv - 6)
