@@ -10,23 +10,26 @@ class HybridLipm:
             self.params = BipedParams('.')
         self.dt = dt
         self.tau = tau0
-        self.omega = params.omega
-        self.r_bar = params.r_bar
-        self.v_bar = params.v_bar
-        self.T = params.T
-        self.K = params.K
-        self.x_sat = params.x_sat
-        self.x_ref_0 = np.array([-params.r_bar, params.v_bar])
+        self.t_HS = 0
+        self.omega = self.params.omega
+        self.r_bar = self.params.r_bar
+        self.v_bar = self.params.v_bar
+        self.T = self.params.T
+        self.K = self.params.K
+        self.x_sat = self.params.x_sat
+        self.x_ref_0 = np.array([-self.r_bar, self.v_bar])
         self.A_d = np.array([[np.cosh(self.omega * dt), (1 / self.omega) * np.sinh(self.omega * dt)],
                              [self.omega * np.sinh(self.omega * dt), np.cosh(self.omega * dt)]])
         self.B_d = np.array([1 - np.cosh(self.omega * dt), - self.omega * np.sinh(self.omega * dt)])
 
     def flow(self, x, u):
         self.tau += self.dt
+        self.t_HS += self.dt
         return self.A_d.dot(x) + self.B_d * u
 
     def jump(self, x):
         self.tau = self.tau - self.T
+        self.t_HS = 0
         return x - np.array([2 * self.r_bar, 0])
 
     def referenceWithTimer(self):
