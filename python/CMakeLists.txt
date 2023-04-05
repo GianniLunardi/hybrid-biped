@@ -4,6 +4,7 @@ SET(PACKAGE_PYTHON_FILES
   LinearMPC.py
   LIPM_to_WBD.py
   TSID.py
+  inverse_geometry.py
 )
 
 STRING(REGEX REPLACE "-" "_" PY_NAME ${PROJECT_NAME})
