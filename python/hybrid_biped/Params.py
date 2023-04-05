@@ -3,7 +3,7 @@ import scipy.io
 
 class BipedParams:
 
-    def __init__(self, mat_path, filename = None):
+    def __init__(self, filename = None):
         self.h_com = 0.66  #0.58
         self.g = 9.81
         self.omega = np.sqrt(self.g / self.h_com)
@@ -27,7 +27,7 @@ class BipedParams:
         self.x_sat = self.foot_length / 2
         self.y_sat = self.foot_width / 2
 
-        data = scipy.io.loadmat(mat_path + '/data.mat')
+        data = scipy.io.loadmat('/home/glunardi/devel/src/hybrid-biped/data/data.mat')
         self.K = data['K']
 
         # ICs
