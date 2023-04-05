@@ -10,7 +10,7 @@ U_x_wb = data['u_x']
 Y_mpc = data['y_com']
 U_y_mpc = data['u_y']
 U_ref = data['u_ref']
-foot_steps = np.vstack([[-0.3, 0.08] ,data['foot_steps'][:-1]])
+foot_steps = np.vstack([[0, 0.08] ,data['foot_steps'][:-1]])
 
 wbc = LipmToWbc(params)
 n_wb = len(X_wb) - 1
