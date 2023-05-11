@@ -14,8 +14,8 @@ plot_colors = { [0 0.4470 0.7410] ...
                 [0.6350 0.0780 0.1840] };
 
 %% Reference parameters
-r_bar = 0.15;
-T_ref = 1.2;
+r_bar = 0.025;    % 1.5
+T_ref = 1.2;    % 1.2
 z_c = 0.58;
 omega = sqrt(9.81/z_c);
 u_bar = 0.075;
@@ -82,7 +82,7 @@ JSPAN = [0 100];
 rule = 1;
 opts = odeset('RelTol',1e-6,'MaxStep',1e-3);
 
-x0 = [-1e-1; 0.12; (0.3)*T_ref];
+x0 = [-0.18e-1; 0.08; (0.2)*T_ref];
 
 [t j x] = HyEQsolver( @(x,t) f(x,A,B,K,r_bar,v_bar,L,u_bar), ...
                       @(x,t) g(x,r_bar,T_ref), ...
@@ -136,9 +136,10 @@ hold on;
 plot(e(:,1), e(:,2), 'Color', plot_colors{2});
 title('Region of attraction');
 
-%% Save K
+%% Save data
+ref0 = [ref(1,1); ref(1,2)];
 save(strcat(getenv('HOME'), '/devel/src/hybrid-biped/data/data.mat'), ...
-    "K", "x0");
+    "K", "x0", "ref0");
 
 %% External functions
 
