@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 from hybrid_biped import BipedParams, LipmToWbc
 
 
-params = BipedParams('../data')
+params = BipedParams()
 data = np.load('../data/linear_mpc.npz')
 X_wb = data['x_com']
 U_x_wb = data['u_x']
 Y_mpc = data['y_com']
 U_y_mpc = data['u_y']
 U_ref = data['u_ref']
-foot_steps = np.vstack([[0, 0.08] ,data['foot_steps'][:-1]])
+foot_steps = np.vstack([[-params.step_length, params.step_width/2] ,data['foot_steps'][:-1]])
 
 wbc = LipmToWbc(params)
 n_wb = len(X_wb) - 1
@@ -48,7 +48,14 @@ j = 1
 stance = 'RF'
 swing = 'LF'
 x0 = X_wb[0,:]
-count = 0
+
+# Initial count
+t_init = 1/params.omega * np.log(
+    (-params.x_hat_0[0] - np.sqrt(params.v_bar** 2 / params.omega** 2 + params.x_hat_0[0]** 2 - params.r_bar**2)) /
+    (params.r_bar - params.v_bar / params.omega))
+count = np.round(t_init / params.dt)
+T_pred[0] += count * params.dt
+
 for i in range(n_wb):
     wbc.set_time_offline(count * params.dt, T_pred[0])
     count += 1
