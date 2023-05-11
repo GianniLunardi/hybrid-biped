@@ -2,7 +2,7 @@ import time
 import numpy as np
 import pinocchio as pin
 from numpy import nan
-from python.hybrid_biped import BipedParams, InverseGeometry
+from python.hybrid_biped import BipedParams, InverseKinematics
 
 
 # class Config:
@@ -117,47 +117,47 @@ from python.hybrid_biped import BipedParams, InverseGeometry
 #     if iter_line_search == N:
 #         break
 
-params = BipedParams('../data')
-ig = InverseGeometry(params)
-
-robot = ig.robot
-N = ig.max_iter
-q = np.empty((N+1, robot.nq))*nan  # joint angles
-x = np.empty((N, 15))*nan          # frame position
-cost = np.empty(N)*nan
-grad_norm = np.empty(N)*nan         # gradient norm
-q[0,:] = ig.q0
-
-for i in range(N):
-    robot.computeJointJacobians(q[i,:])
-    robot.framesForwardKinematics(q[i,:])
-    H_lf = robot.framePlacement(q[i,:], ig.id_lf)
-    H_rf = robot.framePlacement(q[i,:], ig.id_rf)
-    # EE positions
-    # LF pose
-    x[i,:3] = H_lf.translation
-    x[i,3:6] = pin.rpy.matrixToRpy(H_lf.rotation)
-    # RF pose
-    x[i, 6:9] = H_rf.translation
-    x[i, 9:12] = pin.rpy.matrixToRpy(H_rf.rotation)
-    # CoM position
-    x[i,-3:] = robot.com(q[i,:])
-    print('Iter : ', i, 'LF: ', x[i,:3], 'RF: ', x[i,6:9])
-    # Jacobians
-    J_lf = robot.frameJacobian(q[i,:], ig.id_lf)
-    J_rf = robot.frameJacobian(q[i,:], ig.id_rf)
-    J_com = robot.Jcom(q[i,:])
-    J = np.vstack([J_lf, J_rf, J_com[:3,:]])
-    result = ig.inverse_geometry_step(q[i,:], x[i,:], J, i)
-
-    if result is None:
-        break
-    else:
-        q_next, c, g = result
-        q[i+1,:] = q_next
-        cost[i] = c
-        grad_norm[i] = g
-
-    if i % ig.DISPLAY_N == 0:
-        ig.viz.display(q[i,:])
-        time.sleep(0.1)
+params = BipedParams()
+ig = InverseKinematics(params, logger=True)
+ig.compute_inverse_geometry()
+# robot = ig.robot
+# N = ig.max_iter
+# q = np.empty((N+1, robot.nq))*nan  # joint angles
+# x = np.empty((N, 15))*nan          # frame position --> lf pose (6) + rf pose (6) + CoM position (3)
+# cost = np.empty(N)*nan
+# grad_norm = np.empty(N)*nan         # gradient norm
+# q[0,:] = ig.q0
+#
+# for i in range(N):
+#     robot.computeJointJacobians(q[i,:])
+#     robot.framesForwardKinematics(q[i,:])
+#     H_lf = robot.framePlacement(q[i,:], ig.id_lf)
+#     H_rf = robot.framePlacement(q[i,:], ig.id_rf)
+#     # EE positions
+#     # LF pose
+#     x[i,:3] = H_lf.translation
+#     x[i,3:6] = pin.rpy.matrixToRpy(H_lf.rotation)
+#     # RF pose
+#     x[i, 6:9] = H_rf.translation
+#     x[i, 9:12] = pin.rpy.matrixToRpy(H_rf.rotation)
+#     # CoM position
+#     x[i,-3:] = robot.com(q[i,:])
+#     print('Iter : ', i, 'LF: ', x[i,:3], 'RF: ', x[i,6:9])
+#     # Jacobians
+#     J_lf = robot.frameJacobian(q[i,:], ig.id_lf)
+#     J_rf = robot.frameJacobian(q[i,:], ig.id_rf)
+#     J_com = robot.Jcom(q[i,:])
+#     J = np.vstack([J_lf, J_rf, J_com[:3,:]])
+#     result = ig.inverse_geometry_step(q[i,:], x[i,:], J, i)
+#
+#     if result is None:
+#         break
+#     else:
+#         q_next, c, g = result
+#         q[i+1,:] = q_next
+#         cost[i] = c
+#         grad_norm[i] = g
+#
+#     if i % ig.DISPLAY_N == 0:
+#         ig.viz.display(q[i,:])
+#         time.sleep(0.1)
