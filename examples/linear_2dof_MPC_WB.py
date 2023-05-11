@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 from hybrid_biped import *
+from tqdm import tqdm
 
-
-params = BipedParams('../data')
+params = BipedParams()
 hs = HybridLipm(params.dt, params.tau_hat_0, params)
 mpc = LipmMPC(params)
 inter = LipmToWbc(params)
@@ -30,18 +30,22 @@ u_x = np.zeros(n_steps)
 u_y = np.zeros(walk_time_des)
 z_y = np.zeros(walk_time_des)
 # Foot steps
-foot_steps = np.vstack([[-0.3, 0.08],
+foot_steps = np.vstack([[-0.3, 0.09],
                         np.copy(mpc.foot_steps_des)])
 feet_traj = dict()
 feet_traj['left'] = np.zeros((n_steps, 3, 3))
 feet_traj['right'] = np.zeros((n_steps, 3, 3))
 
+t_init = 1/params.omega * np.log(
+    (-params.x_hat_0[0] - np.sqrt(params.v_bar** 2 / params.omega** 2 + params.x_hat_0[0]** 2 - params.r_bar**2)) /
+    (params.r_bar - params.v_bar / params.omega))
+hs.t_HS = round(t_init/params.dt) * params.dt
 
 ### SIMUALTION ###
 j, k = 0, 1
 count = 1
 stance, swing = 'right', 'left'
-for i in range(n_steps):
+for i in tqdm(range(n_steps)):
     # x direction
     if x[i,0] >= params.r_bar:
         x[i,:] = hs.jump(x[i,:])
@@ -50,7 +54,6 @@ for i in range(n_steps):
     x_r[i,:] = hs.referenceWithTimer()
     eps[i,:] = x[i,:] - x_r[i,:]
     u_x[i] = hs.saturatedFb(eps[i,:])
-    x[i+1,:] = hs.flow(x[i,:], u_x[i])
     x_ddot[i] = inter.computeCoMAcceleration(x[i,0], u_x[i])
     # y direction
     if i % params.ratio == 0:
@@ -61,6 +64,7 @@ for i in range(n_steps):
         z_y[j] = mpc.Z_y
         j += 1
         count = 0
+    x[i+1,:] = hs.flow(x[i,:], u_x[i])
     y[i+1,:] = inter.integrateCoMLateralState(y_mpc[j-1], u_y[j-1], count)
     count +=1
     y_ddot[i] = inter.computeCoMAcceleration(y[i,0], u_y[j-1])
