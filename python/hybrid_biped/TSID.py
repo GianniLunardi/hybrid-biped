@@ -79,6 +79,14 @@ class TsidBiped:
         sampleAM = tsid.TrajectorySample(3)
         amTask.setReference(sampleAM)
 
+        self.torsoOrientationTask = tsid.TaskSE3Equality("task-torso-orient", self.robot, self.params.torso_frame_name)
+        self.torsoOrientationTask.setKp(self.params.kp_torso * np.ones(6))
+        self.torsoOrientationTask.setKd(2.0 * np.sqrt(self.params.kp_torso) * np.ones(6))
+        self.torsoOrientationTask.setMask(self.params.mask_torso)
+        H_torso_ref = pin.SE3.Identity()
+        self.trajTorso = tsid.TrajectorySE3Constant("traj-torso", H_torso_ref)
+        formulation.addMotionTask(self.torsoOrientationTask, self.params.w_torso, 1, 0.0)
+
         postureTask = tsid.TaskJointPosture("task-posture", robot)
         postureTask.setKp(params.kp_posture * params.gain_vector)
         postureTask.setKd(2.0 * np.sqrt(params.kp_posture * params.gain_vector))
