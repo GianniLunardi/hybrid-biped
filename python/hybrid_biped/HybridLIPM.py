@@ -7,7 +7,7 @@ class HybridLipm:
         if params is not None:
             self.params = params
         else:
-            self.params = BipedParams('.')
+            self.params = BipedParams()
         self.dt = dt
         self.tau = tau0
         self.t_HS = 0
