@@ -87,7 +87,7 @@ class BipedParams:
         self.tau_max_scaling = 1.45  # scaling factor of torque bounds
         self.v_max_scaling = 0.8
 
-        self.kp_contact = 10.0  # proportional gain of contact constraint
+        self.kp_contact = 1e-1  # proportional gain of contact constraint
         self.kp_foot = 10.0  # proportional gain of contact constraint
         self.kp_com = 10.0  # proportional gain of center of mass task
         self.kp_am = 10.0  # proportional gain of angular momentum task

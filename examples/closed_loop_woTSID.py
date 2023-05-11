@@ -88,19 +88,15 @@ for i in tqdm(range(n_steps)):
         j += 1
     x[i+1,:] = hs.flow(x[i,:], u_x[i])
     # Compute the accelerations
-    x_ddot[i] = inter.computeCoMAcceleration(x[i,0], u_x[i])    # THIS SEEMS TO BE UNCORRECT
+    x_ddot[i] = inter.computeCoMAcceleration(x[i,0], u_x[i])
     if REAL_BOOL:
         y_ddot[i] = inter.computeCoMAcceleration(y_real[i,0], u_y[j-1])
     else:
         y_ddot[i] = inter.computeCoMAcceleration(y_mpc[j-1,0], u_y[j-1])
     # Integrate the acceleration
     if REAL_BOOL:
-        # x_real[i+1,0], x_real[i+1,1] = integrateCoMAcc(x_real[i,0], x_real[i,1], x_ddot[i], params.dt)
-        # y_real[i+1,0], y_real[i+1,1] = integrateCoMAcc(y_real[i,0], y_real[i,1], y_ddot[i], params.dt)
-        x_real[i+1,1] = x_real[i,1] + x_ddot[i] * params.dt
-        y_real[i+1,1] = y_real[i,1] + y_ddot[i] * params.dt
-        x_real[i+1,0] = x_real[i,0] + x_real[i,1] * params.dt + 0.5 * x_ddot[i] * params.dt**2
-        y_real[i+1,0] = y_real[i,0] + y_real[i,1] * params.dt + 0.5 * y_ddot[i] * params.dt**2
+        x_real[i+1,0], x_real[i+1,1] = integrateCoMAcc(x_real[i,0], x_real[i,1], x_ddot[i], params.dt)
+        y_real[i+1,0], y_real[i+1,1] = integrateCoMAcc(y_real[i,0], y_real[i,1], y_ddot[i], params.dt)
     else:
         y[i+1,:] = inter.integrateCoMLateralState(y[i,:], u_y[j-1], 0)
 
